@@ -113,3 +113,6 @@ tests/media
 .direnv
 
 tests/settings/media/*.txt
+
+.idea/
+.codebuddy/
