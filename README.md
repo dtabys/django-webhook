@@ -45,10 +45,34 @@ django-webhook-request-timestamp: 1697818014
 - Audit log with past webhook events
 - Protection from replay attacks
 - Allows rotating webhook secrets
+- Filter webhooks by model IDs or bucket
 
 ### 📖 Documentation
 
 https://django-webhook.readthedocs.io
+
+### 🔍 Filtering Webhooks
+
+You can filter which model instances trigger webhooks using the `filters` field on the Webhook model. This allows you to:
+
+1. Filter by a list of model IDs
+2. Filter by a "bucket" attribute (if present on the model)
+
+Example filter configuration:
+
+```python
+# In your Django admin or code
+webhook = Webhook.objects.get(id=1)
+webhook.filters = {
+    "app_name.ModelName": {
+        "ids": [1, 2, 3],  # Only trigger for these model IDs
+        "bucket": "production"  # Only trigger if model.bucket == "production"
+    }
+}
+webhook.save()
+```
+
+The filters are applied using AND logic - both conditions must be met for the webhook to trigger. If a filter type is not specified (e.g., no "ids" or no "bucket"), that filter is not applied.
 
 
 ### Contributors

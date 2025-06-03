@@ -10,4 +10,5 @@ class WebhookForm(forms.ModelForm):
             "url",
             "active",
             "topics",
+            "filters",
         ]

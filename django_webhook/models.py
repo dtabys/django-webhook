@@ -31,6 +31,11 @@ class Webhook(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False)
     created = DateTimeField(auto_now_add=True)
     modified = DateTimeField(auto_now=True)
+    filters = models.JSONField(
+        null=True, 
+        blank=True, 
+        help_text="Filter configuration for models. Format: {'model_name': {'ids': [1, 2, 3], 'bucket': 'value'}}"
+    )
 
     def __str__(self):
         return f"id={self.id} active={self.active}"

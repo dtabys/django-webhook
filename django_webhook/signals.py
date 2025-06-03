@@ -42,7 +42,7 @@ class SignalListener:
                 action_type = DELETE
 
         topic = f"{self.model_label}/{action_type}"
-        webhook_ids = _find_webhooks(topic)
+        webhook_ids = _find_webhooks(topic, instance)
         encoder_cls = get_settings()["PAYLOAD_ENCODER_CLASS"]
 
         for id, uuid in webhook_ids:
@@ -112,24 +112,53 @@ def _active_models():
     return model_classes
 
 
-def _find_webhooks(topic: str):
+def _find_webhooks(topic: str, instance=None):
     """
     In tests and for smaller setups we don't want to cache the query.
     """
     if get_settings()["USE_CACHE"]:
-        return _query_webhooks_cached(topic)
-    return _query_webhooks(topic)
+        return _query_webhooks_cached(topic, instance)
+    return _query_webhooks(topic, instance)
 
 
 @cache(ttl=timedelta(minutes=1))
-def _query_webhooks_cached(topic: str):
+def _query_webhooks_cached(topic: str, instance=None):
     """
     Cache the calls to the database so we're not polling the db anytime a signal is triggered.
     """
-    return _query_webhooks(topic)
+    return _query_webhooks(topic, instance)
 
 
-def _query_webhooks(topic: str):
-    return Webhook.objects.filter(active=True, topics__name=topic).values_list(
-        "id", "uuid"
-    )
+def _query_webhooks(topic: str, instance=None):
+    webhooks = Webhook.objects.filter(active=True, topics__name=topic)
+
+    if instance:
+        model_label = instance._meta.label
+        filtered_webhooks = []
+
+        for webhook in webhooks:
+            if not webhook.filters:
+                filtered_webhooks.append(webhook)
+                continue
+
+            model_filters = webhook.filters.get(model_label)
+            if not model_filters:
+                filtered_webhooks.append(webhook)
+                continue
+
+            # Filter by IDs if specified
+            if 'ids' in model_filters and model_filters['ids']:
+                if instance.pk not in model_filters['ids']:
+                    continue
+
+            # Filter by bucket if specified and if the model has a bucket attribute
+            if 'bucket' in model_filters and model_filters['bucket']:
+                bucket_value = getattr(instance, 'bucket', None)
+                if bucket_value is None or bucket_value != model_filters['bucket']:
+                    continue
+
+            filtered_webhooks.append(webhook)
+
+        return [(webhook.id, webhook.uuid) for webhook in filtered_webhooks]
+
+    return webhooks.values_list("id", "uuid")

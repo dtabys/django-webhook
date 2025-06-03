@@ -24,6 +24,16 @@ class WebhookAdmin(admin.ModelAdmin):
     search_fields = ("url",)
     filter_horizontal = ("topics",)
     inlines = [WebhookSecretInline]
+    readonly_fields = ("uuid",)
+    fieldsets = (
+        (None, {
+            "fields": ("url", "active", "uuid", "topics")
+        }),
+        ("Filtering", {
+            "fields": ("filters",),
+            "description": "Filter which model instances trigger this webhook. Format: {'app_name.ModelName': {'ids': [1, 2, 3], 'bucket': 'value'}}"
+        }),
+    )
 
 
 @admin.register(WebhookEvent)
