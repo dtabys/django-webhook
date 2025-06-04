@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "django-webhook"
-version = "0.0.15"
+version = "0.0.15.dev0"
 description = ""
 authors = ["Dani Hodovic <you@example.com>"]
 license = "MIT"
