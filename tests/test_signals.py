@@ -46,7 +46,7 @@ def test_create(responses):
     assert req.headers["Django-Webhook-UUID"] == str(webhook.uuid)
     assert json.loads(req.body) == {
         "topic": "tests.User/create",
-        "object": TEST_USER,
+        "object": {"id": 1},
         "object_type": "tests.User",
         "webhook_uuid": "54c10b6e-42e7-4edc-a047-a53c7ff80c77",
     }
@@ -76,11 +76,9 @@ def test_update(responses):
     user.save()
     assert len(responses.calls) == 1
     req = responses.calls[0].request
-    expected_object = TEST_USER.copy()
-    expected_object["name"] = "Adin"
     assert json.loads(req.body) == {
         "topic": "tests.User/update",
-        "object": expected_object,
+        "object": {"id": user.pk},
         "object_type": "tests.User",
         "webhook_uuid": str(webhook.uuid),
     }
@@ -103,7 +101,7 @@ def test_delete(responses):
     req = responses.calls[0].request
     assert json.loads(req.body) == {
         "topic": "tests.User/delete",
-        "object": TEST_USER,
+        "object": {"id": user.pk},
         "object_type": "tests.User",
         "webhook_uuid": str(webhook.uuid),
     }

@@ -25,7 +25,7 @@ from .settings import get_settings
 def fire_webhook(
     self,
     webhook_id: int,
-    payload: dict,
+    payload: str,
     topic=None,
     object_type=None,
 ):

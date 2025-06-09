@@ -43,7 +43,7 @@ def test_creates_events_when_enabled(responses):
     assert event.webhook == webhook
     assert event.object == {
         "topic": "tests.User/create",
-        "object": TEST_USER,
+        "object": {"id": 1},
         "object_type": "tests.User",
         "webhook_uuid": str(webhook.uuid),
     }

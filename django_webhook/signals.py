@@ -47,7 +47,8 @@ class SignalListener:
 
         for id, uuid in webhook_ids:
             payload_dict = dict(
-                object=model_dict(instance),
+                # object=model_dict(instance), // Used to send the full model instance
+                object={"id": instance.pk},
                 topic=topic,
                 object_type=self.model_label,
                 webhook_uuid=str(uuid),

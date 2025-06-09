@@ -74,6 +74,32 @@ webhook.save()
 
 The filters are applied using AND logic - both conditions must be met for the webhook to trigger. If a filter type is not specified (e.g., no "ids" or no "bucket"), that filter is not applied.
 
+### 🧪 Testing Webhooks
+
+You can send a test webhook request to verify your webhook configuration using the `send_test` method:
+
+```python
+# In your Django code
+webhook = Webhook.objects.get(id=1)
+
+# Send a test webhook with default payload
+result = webhook.send_test()
+
+# Send a test webhook with custom payload and topic
+custom_payload = {
+    "test": True,
+    "message": "Custom test message",
+    "data": {"key": "value"}
+}
+result = webhook.send_test(payload=custom_payload, topic="custom/test")
+```
+
+The `send_test` method:
+- Sends the webhook request synchronously (no Celery task delay)
+- Returns the result of the webhook request
+- Creates a WebhookEvent record if STORE_EVENTS is enabled
+- Throws an error if the webhook is inactive or if the request fails
+
 
 ### Contributors
 <a href="https://github.com/danihodovic/django-webhook/graphs/contributors">

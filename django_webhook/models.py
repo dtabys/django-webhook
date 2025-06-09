@@ -21,7 +21,19 @@ STATES = [
 
 
 class Webhook(models.Model):
-    url = models.URLField()
+    name = models.CharField(
+        max_length=250,
+        blank=True,
+        null=True,
+        validators=[
+            validators.RegexValidator(
+                r"^[a-zA-Z0-9_ ]+$",
+                message="Webhook name must contain only alphanumeric characters, underscores, or spaces.",
+            )
+        ],
+        default="",
+    )
+    url = models.URLField(unique=True)
     topics = models.ManyToManyField(
         "django_webhook.WebhookTopic",
         related_name="webhooks",
@@ -31,9 +43,10 @@ class Webhook(models.Model):
     uuid = models.UUIDField(default=uuid.uuid4, editable=False)
     created = DateTimeField(auto_now_add=True)
     modified = DateTimeField(auto_now=True)
+    # change filter to take just bucket?
     filters = models.JSONField(
-        null=True, 
-        blank=True, 
+        null=True,
+        blank=True,
         help_text="Filter configuration for models. Format: {'model_name': {'ids': [1, 2, 3], 'bucket': 'value'}}"
     )
 
@@ -52,9 +65,24 @@ class WebhookTopic(models.Model):  # type: ignore
             validate_topic_model,
         ],
     )
+    display_name = models.CharField(max_length=250, blank=True, editable=False)
+
+    def save(self, *args, **kwargs):
+        # Generate display_name from name
+        if self.name:
+            parts = self.name.split('/')
+            if len(parts) == 2:
+                model_part, action_part = parts
+                # Extract the model name (after the dot)
+                if '.' in model_part:
+                    model_name = model_part.split('.')[1]
+                    # Capitalize the first letter of the action part
+                    action_name = action_part.capitalize()
+                    self.display_name = f"{model_name} {action_name}"
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.name
+        return self.display_name if self.display_name else self.name
 
 
 class WebhookSecret(models.Model):
