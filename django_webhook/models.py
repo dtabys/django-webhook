@@ -166,3 +166,47 @@ def populate_topics_from_settings():
         if not WebhookTopic.objects.filter(name=topic).exists():
             WebhookTopic.objects.create(name=topic)
             logging.info(f"Adding topic: {topic}")
+
+    def send_test(self, payload=None, topic=None):
+        """
+        Send a test webhook request with the provided payload.
+
+        Args:
+            payload (dict, optional): Custom payload to send. If not provided, a default test payload will be used.
+            topic (str, optional): Topic to use for the test. If not provided, a default test topic will be used.
+
+        Returns:
+            WebhookEvent: The created webhook event object if STORE_EVENTS is enabled, None otherwise.
+        """
+
+        from datetime import datetime
+
+        from django_webhook.tasks import fire_webhook
+        import json
+        from django.core.serializers.json import DjangoJSONEncoder
+
+        if not self.active:
+            raise ValueError("Cannot send test webhook to inactive webhook")
+
+        if payload is None:
+            payload = {
+                "test": True,
+                "message": "This is a test webhook",
+                "timestamp": str(datetime.now()),
+                "webhook_uuid": str(self.uuid),
+                "webhook_id": self.id,
+            }
+
+        if topic is None:
+            topic = "test/webhook"
+
+        # Convert payload to JSON string
+        payload_str = json.dumps(payload, cls=DjangoJSONEncoder)
+
+        # Send the webhook synchronously to get immediate feedback
+        result = fire_webhook.apply(
+            args=[self.id, payload_str, topic, "test"],
+            throw=True
+        ).get()
+
+        return result
