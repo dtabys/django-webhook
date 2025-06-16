@@ -80,7 +80,6 @@ class Webhook(models.Model):
                 "message": "This is a test webhook",
                 "timestamp": str(datetime.now()),
                 "webhook_uuid": str(self.uuid),
-                "webhook_id": self.id,
             }
 
         if topic is None:
