@@ -52,7 +52,9 @@ def fire_webhook(
         if store_events:
             WebhookEvent.objects.filter(id=event.id).update(status=states.SUCCESS)
     except RequestException as ex:
-        status_code = ex.response.status_code  # type: ignore
+        status_code = 500
+        if hasattr(ex, 'response') and ex.response is not None:
+            status_code = ex.response.status_code
         logging.warning(f"Webhook request failed {status_code=}")
         if store_events:
             WebhookEvent.objects.filter(id=event.id).update(status=states.FAILURE)
