@@ -82,8 +82,7 @@ class Webhook(models.Model):
                 "webhook_uuid": str(self.uuid),
             }
 
-        if topic is None:
-            topic = "test/webhook"
+        topic = "test/webhook"
 
         # Convert payload to JSON string
         payload_str = json.dumps(payload, cls=DjangoJSONEncoder)
